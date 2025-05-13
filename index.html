@@ -11,28 +11,27 @@
     }
 
     #formulario {
-      margin-bottom: 20px;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      margin-bottom: 20px;
     }
 
-    input, select, button {
+    input, button {
       padding: 5px;
       font-size: 14px;
     }
 
     #figura {
-      position: relative;
-      width: 300px;
       margin: auto;
+      text-align: center;
     }
 
     .corpo {
-      position: relative;
       background: gray;
       transform: perspective(600px) rotateX(10deg);
       transform-style: preserve-3d;
+      margin: auto;
     }
 
     .tarja, .hexagono {
@@ -49,10 +48,11 @@
       height: 55px;
       background-color: #64C7CC;
       position: relative;
+      margin: 0 auto;
     }
 
-    .hexagono:before,
-    .hexagono:after {
+    .hexagono::before,
+    .hexagono::after {
       content: "";
       position: absolute;
       width: 0;
@@ -60,14 +60,17 @@
       border-right: 50px solid transparent;
     }
 
-    .hexagono:before {
+    .hexagono::before {
       bottom: 100%;
-      border-bottom: 27.5px solid #64C7CC;
     }
 
-    .hexagono:after {
+    .hexagono::after {
       top: 100%;
-      border-top: 27.5px solid #64C7CC;
+    }
+
+    .erro {
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -76,68 +79,45 @@
 <h2>Simulador de Montagem de Figura</h2>
 
 <div id="formulario">
-  <label>Largura do corpo: <input id="larguraCorpo" type="number" value="150"></label>
-  <label>Altura do corpo: <input id="alturaCorpo" type="number" value="200"></label>
-  <label>Cor do corpo: <input id="corCorpo" type="color" value="#808080"></label>
-  <label>Cor da tarja topo: <input id="corTarjaTopo" type="color" value="#0000ff"></label>
-  <label>Cor da tarja fundo: <input id="corTarjaFundo" type="color" value="#ff0000"></label>
-  <label>Cor do topo: <input id="corTopo" type="color" value="#00cc00"></label>
-  <label>Cor do fundo: <input id="corFundo" type="color" value="#9933ff"></label>
+  <label>Corpo - Largura: <input id="larguraCorpo" type="number" min="10"></label>
+  <label>Corpo - Altura: <input id="alturaCorpo" type="number" min="10"></label>
+  <label>Corpo - Cor: <input id="corCorpo" type="color"></label>
+
+  <label>Tarja Topo - Cor: <input id="corTarjaTopo" type="color"></label>
+  <label>Tarja Fundo - Cor: <input id="corTarjaFundo" type="color"></label>
+
+  <label>Topo - Cor: <input id="corTopo" type="color"></label>
+  <label>Fundo - Cor: <input id="corFundo" type="color"></label>
+
   <button onclick="montarFigura()">Montar Figura</button>
 </div>
 
+<div id="mensagemErro" class="erro"></div>
 <div id="figura"></div>
 
 <script>
-  function criarHexagono(cor) {
-    const hex = document.createElement("div");
-    hex.className = "hexagono";
-    hex.style.backgroundColor = cor;
-    hex.style.setProperty("--cor", cor);
-    hex.style.setProperty("--cor", cor);
-    hex.style.position = "relative";
-
-    const before = document.createElement("div");
-    const after = document.createElement("div");
-
-    Object.assign(before.style, {
-      content: "''",
-      position: "absolute",
-      bottom: "100%",
-      left: "0",
-      width: "0",
-      borderLeft: "50px solid transparent",
-      borderRight: "50px solid transparent",
-      borderBottom: `27.5px solid ${cor}`
-    });
-
-    Object.assign(after.style, {
-      content: "''",
-      position: "absolute",
-      top: "100%",
-      left: "0",
-      width: "0",
-      borderLeft: "50px solid transparent",
-      borderRight: "50px solid transparent",
-      borderTop: `27.5px solid ${cor}`
-    });
-
-    hex.appendChild(before);
-    hex.appendChild(after);
-    return hex;
-  }
-
   function montarFigura() {
-    const largura = document.getElementById("larguraCorpo").value + "px";
-    const altura = document.getElementById("alturaCorpo").value + "px";
+    const largura = document.getElementById("larguraCorpo").value;
+    const altura = document.getElementById("alturaCorpo").value;
     const corCorpo = document.getElementById("corCorpo").value;
     const corTarjaTopo = document.getElementById("corTarjaTopo").value;
     const corTarjaFundo = document.getElementById("corTarjaFundo").value;
     const corTopo = document.getElementById("corTopo").value;
     const corFundo = document.getElementById("corFundo").value;
 
+    const erro = document.getElementById("mensagemErro");
     const figura = document.getElementById("figura");
-    figura.innerHTML = ""; // Limpa figura anterior
+    figura.innerHTML = "";
+    erro.textContent = "";
+
+    if (
+      !largura || !altura || !corCorpo ||
+      !corTarjaTopo || !corTarjaFundo ||
+      !corTopo || !corFundo
+    ) {
+      erro.textContent = "⚠️ Por favor, preencha TODAS as especificações para montar a figura.";
+      return;
+    }
 
     // Topo
     const topo = criarHexagono(corTopo);
@@ -147,14 +127,14 @@
     const tarjaTopo = document.createElement("div");
     tarjaTopo.className = "tarja";
     tarjaTopo.style.backgroundColor = corTarjaTopo;
-    tarjaTopo.style.width = largura;
+    tarjaTopo.style.width = largura + "px";
     figura.appendChild(tarjaTopo);
 
     // Corpo
     const corpo = document.createElement("div");
     corpo.className = "corpo";
-    corpo.style.width = largura;
-    corpo.style.height = altura;
+    corpo.style.width = largura + "px";
+    corpo.style.height = altura + "px";
     corpo.style.backgroundColor = corCorpo;
     figura.appendChild(corpo);
 
@@ -162,12 +142,38 @@
     const tarjaFundo = document.createElement("div");
     tarjaFundo.className = "tarja";
     tarjaFundo.style.backgroundColor = corTarjaFundo;
-    tarjaFundo.style.width = largura;
+    tarjaFundo.style.width = largura + "px";
     figura.appendChild(tarjaFundo);
 
     // Fundo
     const fundo = criarHexagono(corFundo);
     figura.appendChild(fundo);
+  }
+
+  function criarHexagono(cor) {
+    const hex = document.createElement("div");
+    hex.className = "hexagono";
+    hex.style.backgroundColor = cor;
+    hex.style.setProperty("--cor", cor);
+
+    hex.style.setProperty("--cor", cor);
+    hex.style.position = "relative";
+
+    hex.style.setProperty("border-top", "none");
+    hex.style.setProperty("border-bottom", "none");
+
+    const before = document.createElement("style");
+    before.innerHTML = `
+      .hexagono::before {
+        border-bottom: 27.5px solid ${cor};
+      }
+      .hexagono::after {
+        border-top: 27.5px solid ${cor};
+      }
+    `;
+    document.head.appendChild(before);
+
+    return hex;
   }
 </script>
 
