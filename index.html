@@ -1,181 +1,84 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Simulador de Formas</title>
+  <title>Gráfico de Espessura (1/2 pol)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-
-    #formulario {
+      margin: 0;
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f4f4f4;
+      cursor: pointer;
     }
-
-    input, button {
-      padding: 5px;
-      font-size: 14px;
-    }
-
-    #figura {
-      margin: auto;
-      text-align: center;
-    }
-
-    .corpo {
-      background: gray;
-      transform: perspective(600px) rotateX(10deg);
-      transform-style: preserve-3d;
-      margin: auto;
-    }
-
-    .tarja, .hexagono {
-      margin: auto;
-    }
-
-    .tarja {
-      height: 20px;
-      background: #000;
-    }
-
-    .hexagono {
-      width: 100px;
-      height: 55px;
-      background-color: #64C7CC;
-      position: relative;
-      margin: 0 auto;
-    }
-
-    .hexagono::before,
-    .hexagono::after {
-      content: "";
-      position: absolute;
-      width: 0;
-      border-left: 50px solid transparent;
-      border-right: 50px solid transparent;
-    }
-
-    .hexagono::before {
-      bottom: 100%;
-    }
-
-    .hexagono::after {
-      top: 100%;
-    }
-
-    .erro {
-      color: red;
-      font-weight: bold;
+    canvas {
+      background: #fff;
+      border: 1px solid #ccc;
+      max-width: 90%;
+      max-height: 90%;
     }
   </style>
 </head>
 <body>
+  <canvas id="grafico"></canvas>
 
-<h2>Simulador de Montagem de Figura</h2>
+  <script>
+    const ctx = document.getElementById('grafico').getContext('2d');
 
-<div id="formulario">
-  <label>Corpo - Largura: <input id="larguraCorpo" type="number" min="10"></label>
-  <label>Corpo - Altura: <input id="alturaCorpo" type="number" min="10"></label>
-  <label>Corpo - Cor: <input id="corCorpo" type="color"></label>
+    const dados = {
+      labels: [], // X: posições em incrementos de 0.5 pol
+      datasets: [{
+        label: 'Espessura Registrada',
+        data: [], // Y: valor digitado
+        borderColor: 'blue',
+        backgroundColor: 'rgba(0, 0, 255, 0.1)',
+        tension: 0.3
+      }]
+    };
 
-  <label>Tarja Topo - Cor: <input id="corTarjaTopo" type="color"></label>
-  <label>Tarja Fundo - Cor: <input id="corTarjaFundo" type="color"></label>
-
-  <label>Topo - Cor: <input id="corTopo" type="color"></label>
-  <label>Fundo - Cor: <input id="corFundo" type="color"></label>
-
-  <button onclick="montarFigura()">Montar Figura</button>
-</div>
-
-<div id="mensagemErro" class="erro"></div>
-<div id="figura"></div>
-
-<script>
-  function montarFigura() {
-    const largura = document.getElementById("larguraCorpo").value;
-    const altura = document.getElementById("alturaCorpo").value;
-    const corCorpo = document.getElementById("corCorpo").value;
-    const corTarjaTopo = document.getElementById("corTarjaTopo").value;
-    const corTarjaFundo = document.getElementById("corTarjaFundo").value;
-    const corTopo = document.getElementById("corTopo").value;
-    const corFundo = document.getElementById("corFundo").value;
-
-    const erro = document.getElementById("mensagemErro");
-    const figura = document.getElementById("figura");
-    figura.innerHTML = "";
-    erro.textContent = "";
-
-    if (
-      !largura || !altura || !corCorpo ||
-      !corTarjaTopo || !corTarjaFundo ||
-      !corTopo || !corFundo
-    ) {
-      erro.textContent = "⚠️ Por favor, preencha TODAS as especificações para montar a figura.";
-      return;
-    }
-
-    // Topo
-    const topo = criarHexagono(corTopo);
-    figura.appendChild(topo);
-
-    // Tarja Topo
-    const tarjaTopo = document.createElement("div");
-    tarjaTopo.className = "tarja";
-    tarjaTopo.style.backgroundColor = corTarjaTopo;
-    tarjaTopo.style.width = largura + "px";
-    figura.appendChild(tarjaTopo);
-
-    // Corpo
-    const corpo = document.createElement("div");
-    corpo.className = "corpo";
-    corpo.style.width = largura + "px";
-    corpo.style.height = altura + "px";
-    corpo.style.backgroundColor = corCorpo;
-    figura.appendChild(corpo);
-
-    // Tarja Fundo
-    const tarjaFundo = document.createElement("div");
-    tarjaFundo.className = "tarja";
-    tarjaFundo.style.backgroundColor = corTarjaFundo;
-    tarjaFundo.style.width = largura + "px";
-    figura.appendChild(tarjaFundo);
-
-    // Fundo
-    const fundo = criarHexagono(corFundo);
-    figura.appendChild(fundo);
-  }
-
-  function criarHexagono(cor) {
-    const hex = document.createElement("div");
-    hex.className = "hexagono";
-    hex.style.backgroundColor = cor;
-    hex.style.setProperty("--cor", cor);
-
-    hex.style.setProperty("--cor", cor);
-    hex.style.position = "relative";
-
-    hex.style.setProperty("border-top", "none");
-    hex.style.setProperty("border-bottom", "none");
-
-    const before = document.createElement("style");
-    before.innerHTML = `
-      .hexagono::before {
-        border-bottom: 27.5px solid ${cor};
+    const config = {
+      type: 'line',
+      data: dados,
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Posição (em polegadas)'
+            }
+          },
+          y: {
+            min: 0,
+            max: 50,
+            title: {
+              display: true,
+              text: 'Espessura'
+            }
+          }
+        }
       }
-      .hexagono::after {
-        border-top: 27.5px solid ${cor};
+    };
+
+    const grafico = new Chart(ctx, config);
+
+    let posicaoAtual = 0;
+
+    document.body.addEventListener('click', () => {
+      const valor = prompt('Digite o valor da espessura:');
+      const espessura = parseFloat(valor);
+      if (!isNaN(espessura)) {
+        dados.labels.push(posicaoAtual.toFixed(1) + '"');
+        dados.datasets[0].data.push(espessura);
+        posicaoAtual += 0.5;
+        grafico.update();
+      } else {
+        alert('Por favor, insira um número válido.');
       }
-    `;
-    document.head.appendChild(before);
-
-    return hex;
-  }
-</script>
-
+    });
+  </script>
 </body>
 </html>
