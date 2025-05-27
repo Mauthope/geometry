@@ -130,7 +130,22 @@
     });
 
     function abrirImagem() {
-      const canvas = document.getElementById('grafico');
+      const canvasOriginal = document.getElementById('grafico');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Define o mesmo tamanho do canvas original
+      canvas.width = canvasOriginal.width;
+      canvas.height = canvasOriginal.height;
+
+      // Aplica fundo branco
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Desenha o gráfico original por cima
+      ctx.drawImage(canvasOriginal, 0, 0);
+
+      // Gera a imagem e abre em nova aba
       const image = canvas.toDataURL('image/png');
       const novaAba = window.open();
       novaAba.document.write(`<img src="${image}" style="max-width:100%">`);
