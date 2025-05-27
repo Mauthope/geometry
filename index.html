@@ -8,35 +8,77 @@
     body {
       margin: 0;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      height: 100vh;
       background: #f4f4f4;
-      cursor: pointer;
+      font-family: Arial, sans-serif;
     }
+
     canvas {
       background: #fff;
       border: 1px solid #ccc;
       max-width: 90%;
-      max-height: 90%;
+      max-height: 80vh;
+      margin-top: 20px;
+    }
+
+    #botoes {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: #fff;
+    }
+
+    button:hover {
+      background: #0056b3;
     }
   </style>
 </head>
 <body>
+  <h2>Gráfico de Espessura (1/2 pol)</h2>
   <canvas id="grafico"></canvas>
+
+  <div id="botoes">
+    <button onclick="copiarImagem()">Copiar gráfico</button>
+  </div>
 
   <script>
     const ctx = document.getElementById('grafico').getContext('2d');
 
     const dados = {
-      labels: [], // X: posições em incrementos de 0.5 pol
+      labels: [],
       datasets: [{
         label: 'Espessura Registrada',
-        data: [], // Y: valor digitado
+        data: [],
         borderColor: 'blue',
         backgroundColor: 'rgba(0, 0, 255, 0.1)',
         tension: 0.3
       }]
+    };
+
+    const mediaPlugin = {
+      id: 'mediaTexto',
+      afterDatasetsDraw(chart) {
+        const data = chart.data.datasets[0].data;
+        if (data.length > 0) {
+          const media = data.reduce((a, b) => a + b, 0) / data.length;
+          const { ctx, chartArea } = chart;
+          ctx.save();
+          ctx.fillStyle = 'red';
+          ctx.font = '16px Arial';
+          ctx.fillText(`Média: ${media.toFixed(2)}`, chartArea.left + 10, chartArea.top + 20);
+          ctx.restore();
+        }
+      }
     };
 
     const config = {
@@ -59,15 +101,22 @@
               text: 'Espessura'
             }
           }
+        },
+        plugins: {
+          legend: {
+            display: true
+          }
         }
-      }
+      },
+      plugins: [mediaPlugin]
     };
 
     const grafico = new Chart(ctx, config);
 
     let posicaoAtual = 0;
 
-    document.body.addEventListener('click', () => {
+    document.body.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') return; // ignora cliques em botões
       const valor = prompt('Digite o valor da espessura:');
       const espessura = parseFloat(valor);
       if (!isNaN(espessura)) {
@@ -79,6 +128,20 @@
         alert('Por favor, insira um número válido.');
       }
     });
+
+    async function copiarImagem() {
+      const canvas = document.getElementById('grafico');
+      canvas.toBlob(async (blob) => {
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          alert('Gráfico copiado como imagem!');
+        } catch (err) {
+          alert('Erro ao copiar imagem: ' + err);
+        }
+      });
+    }
   </script>
 </body>
 </html>
