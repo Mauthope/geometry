@@ -48,7 +48,7 @@
   <canvas id="grafico"></canvas>
 
   <div id="botoes">
-    <button onclick="copiarImagem()">Copiar gráfico</button>
+    <button onclick="abrirImagem()">Copiar gráfico</button>
   </div>
 
   <script>
@@ -116,7 +116,7 @@
     let posicaoAtual = 0;
 
     document.body.addEventListener('click', (e) => {
-      if (e.target.tagName === 'BUTTON') return; // ignora cliques em botões
+      if (e.target.tagName === 'BUTTON') return;
       const valor = prompt('Digite o valor da espessura:');
       const espessura = parseFloat(valor);
       if (!isNaN(espessura)) {
@@ -129,18 +129,11 @@
       }
     });
 
-    async function copiarImagem() {
+    function abrirImagem() {
       const canvas = document.getElementById('grafico');
-      canvas.toBlob(async (blob) => {
-        try {
-          await navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': blob })
-          ]);
-          alert('Gráfico copiado como imagem!');
-        } catch (err) {
-          alert('Erro ao copiar imagem: ' + err);
-        }
-      });
+      const image = canvas.toDataURL('image/png');
+      const novaAba = window.open();
+      novaAba.document.write(`<img src="${image}" style="max-width:100%">`);
     }
   </script>
 </body>
